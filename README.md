@@ -8,16 +8,15 @@ This Flask-based web application allows users to upload a video and automaticall
 ```
 Video_Transcribe/
 │
-├── static/ # Static assets (optional)
+├── static/ # Static assets
+│ └── uploads/
 ├── templates/
 │ └── index.html # Main HTML interface
-├── uploads/ # Stores uploaded videos
+├── uploads/ (optional)
 ├── venv/ # Virtual environment (auto-generated)
 ├── app.py # Flask app backend
 ├── video_processor.py # Core logic: scene detection, keyframe extraction, captioning
-├── requirements.txt # Python dependencies
-├── .env # Environment variables (for Gemini API key)
-└── README.md # You're reading this!
+└── requirements.txt # Python dependencies
 ```
 ---
 
