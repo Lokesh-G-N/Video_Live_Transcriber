@@ -5,7 +5,7 @@ This Flask-based web application allows users to upload a video and automaticall
 ---
 
 ## 📁 Project Structure
-
+```
 Video_Transcribe/
 │
 ├── static/ # Static assets (optional)
@@ -18,7 +18,7 @@ Video_Transcribe/
 ├── requirements.txt # Python dependencies
 ├── .env # Environment variables (for Gemini API key)
 └── README.md # You're reading this!
-
+```
 ---
 
 ## ⚙️ Features
