@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live AI Video Captions</title>
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(to right, #141e30, #243b55);
+            color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .video-container {
+            margin-top: 40px;
+        }
+
+        .caption-box {
+            margin-top: 20px;
+            height: 200px;
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            width: 70%;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 18px;
+            text-align: left;
+        }
+
+        .upload-section {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Upload and View AI Captions Live</h1>
+    <form method="post" enctype="multipart/form-data" class="upload-section">
+        <input type="file" name="video" required>
+        <input type="submit" value="Upload & Process">
+    </form>
+
+    {% if video_url %}
+    <div class="video-container">
+        <video id="videoPlayer" width="640" height="360" controls>
+            <source src="{{ video_url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <div class="caption-box" id="captionBox"></div>
+
+    <script>
+    const captions = {{ chunks|tojson }};
+    const video = document.getElementById("videoPlayer");
+    const box = document.getElementById("captionBox");
+
+    let currentIndex = -1;
+
+    // Typewriter effect + click to seek
+    function createCaptionElement(text, startTime) {
+        const p = document.createElement("p");
+        p.style.cursor = "pointer";
+        p.onclick = () => { video.currentTime = startTime; };
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i < text.length) {
+                p.textContent += text.charAt(i);
+                i++;
+            } else {
+                clearInterval(interval);
+                box.scrollTop = box.scrollHeight;
+            }
+        }, 30);
+        return p;
+    }
+
+    // Render past captions after seeking
+    function renderCaptionsUpTo(time) {
+        box.innerHTML = "";
+        currentIndex = -1;
+        captions.forEach((seg, idx) => {
+            if (seg.end <= time) {
+                const p = document.createElement("p");
+                p.textContent = seg.caption;
+                p.style.cursor = "pointer";
+                p.onclick = () => { video.currentTime = seg.start; };
+                box.appendChild(p);
+                currentIndex = idx;
+            }
+        });
+    }
+
+    // Live caption typing as video plays
+    video.ontimeupdate = () => {
+        const currentTime = video.currentTime;
+        if (currentIndex + 1 < captions.length) {
+            const next = captions[currentIndex + 1];
+            if (currentTime >= next.start && currentTime < next.end) {
+                const p = createCaptionElement(next.caption, next.start);
+                box.appendChild(p);
+                currentIndex++;
+            }
+        }
+    };
+
+    // Seek handling — replay or skip
+    video.onseeked = () => {
+        renderCaptionsUpTo(video.currentTime);
+    };
+</script>
+
+    {% endif %}
+
+</body>
+</html>
