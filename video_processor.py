@@ -15,7 +15,7 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration
 load_dotenv()
 
 # Gemini Vision API
-GEMINI_API_KEY = "AIzaSyB8b8kgoizvOmHFlAxktqSgAGB2lCinS3s"
+GEMINI_API_KEY = "Your API KEY"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
 # FLAN-T5 Summarizer (optional - not used if you only want combined captions)
