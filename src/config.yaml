@@ -1,0 +1,17 @@
+ollama:
+  host: "http://localhost:11434"
+  vision_model: "minicpm-v:8b"
+  text_model: "qwen2.5:7b-instruct"
+  vision_retries: 3
+  vision_delay_seconds: 0.2
+  max_workers: 8
+
+video:
+  frame_interval_seconds: 4
+  max_frames: 300
+  resize_width: 512
+
+paths:
+  frames_dir: "data/frames"
+  captions_dir: "data/captions"
+  vectorstore_dir: "data/vectorstore"

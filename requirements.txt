@@ -1,0 +1,11 @@
+ollama
+opencv-python
+Pillow
+numpy
+chromadb
+sentence-transformers
+pyyaml
+tqdm
+fastapi
+uvicorn
+python-multipart

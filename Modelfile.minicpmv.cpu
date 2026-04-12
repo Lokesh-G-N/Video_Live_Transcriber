@@ -1,0 +1,2 @@
+FROM minicpm-v:8b
+PARAMETER num_gpu 0
