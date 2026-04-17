@@ -94,32 +94,28 @@ def _vision_caption_with_retry(
 
 
 def _summarize_captions(client: ollama.Client, model: str, captions: List[Dict]) -> str:
-    chunks = []
-    for c in captions:
-        chunks.append(
-            f"[t={c['timestamp_sec']:.2f}s] {c['caption']}"
-        )
-    joined = "\n".join(chunks)
+    # Remove timestamps for the summary to prevent "framewise" reporting
+    raw_captions = [c['caption'] for c in captions]
+    joined = " ".join(raw_captions)
 
     prompt = (
-        "You are an expert video analyst summarizing a technical presentation.\n"
-        "Your goal is to provide a brief, professional overview of the video content.\n\n"
-        "Structure your response as follows:\n"
-        "1. **Short Overview**: A 2-3 sentence high-level summary of what this video is about.\n"
-        "2. **Key Topics**: A few bullet points of the main concepts discussed.\n"
-        "3. **Conclusion**: A final closing sentence.\n\n"
-        "Rules:\n"
-        "- DO NOT include specific timestamps in this summary.\n"
-        "- DO NOT mention 'clideo.com' or other watermarks.\n"
-        "- Use a natural, flowing tone.\n\n"
-        "Frame descriptions to synthesize:\n"
+        "You are an executive content strategist. Below is a sequence of observations from a video. "
+        "Your task is to synthesize these observations into a single, high-level executive summary paragraph.\n\n"
+        "OBSERVATIONS:\n"
         f"{joined}\n\n"
-        "Output the summary in clean Markdown:"
+        "FINAL INSTRUCTIONS (MANDATORY):\n"
+        "- Write exactly ONE cohesive and professional paragraph summarizing the ENTIRE video.\n"
+        "- Do NOT list individual frames, images, or specific timestamps.\n"
+        "- NEVER start with 'The image shows' or 'In this scene'.\n"
+        "- Synthesize the core product, theme, and purpose (e.g., if it's an ad for Genspark, say so).\n"
+        "- NO bullet points, NO lists, NO colons. Keep it under 8 lines.\n\n"
+        "EXECUTIVE SUMMARY:"
     )
+
     response = client.chat(
         model=model,
         messages=[{"role": "user", "content": prompt}],
-        options={"temperature": 0.3},
+        options={"temperature": 0.1},
     )
     return response["message"]["content"].strip()
 

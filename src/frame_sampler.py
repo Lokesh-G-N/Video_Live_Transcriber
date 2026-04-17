@@ -54,7 +54,11 @@ def sample_frames(
                 frame = cv2.resize(frame, (resize_width, int(h * scale)))
 
             frame_file = output_dir / f"frame_{sampled_count:04d}.jpg"
-            cv2.imwrite(str(frame_file), frame)
+            # Use imencode for robustness with special characters in Windows paths
+            success, buffer = cv2.imencode(".jpg", frame)
+            if success:
+                frame_file.write_bytes(buffer.tobytes())
+            
             timestamp = frame_idx / fps
             frame_infos.append(
                 FrameInfo(index=sampled_count, timestamp_sec=timestamp, frame_path=frame_file)

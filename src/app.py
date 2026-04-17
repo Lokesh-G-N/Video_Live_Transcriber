@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from rag_chat import build_vectorstore, _load_config as load_rag_config
 from video_analyzer import analyze_video
 import ollama
+import yt_dlp
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -46,6 +47,11 @@ analysis_jobs: Dict[str, Dict] = {}
 
 class AnalyzeRequest(BaseModel):
     video_path: str
+    frame_interval: Optional[float] = None
+    max_frames: Optional[int] = None
+
+class YoutubeRequest(BaseModel):
+    url: str
     frame_interval: Optional[float] = None
     max_frames: Optional[int] = None
 
@@ -140,6 +146,69 @@ async def start_analysis(req: AnalyzeRequest, background_tasks: BackgroundTasks)
     )
     
     return {"job_id": job_id}
+
+@app.post("/api/youtube")
+async def start_youtube_analysis(req: YoutubeRequest, background_tasks: BackgroundTasks):
+    job_id = str(uuid.uuid4())
+    
+    # We initialize the job with "Downloading" status
+    analysis_jobs[job_id] = {
+        "id": job_id,
+        "status": "processing",
+        "progress": 0.0,
+        "status_msg": "Queueing YouTube Download...",
+        "video_path": "",
+        "video_name": "YouTube Video",
+        "summary": ""
+    }
+    
+    background_tasks.add_task(
+        run_youtube_task,
+        job_id,
+        req.url,
+        req.frame_interval,
+        req.max_frames
+    )
+    
+    return {"job_id": job_id}
+
+def run_youtube_task(job_id: str, url: str, interval: Optional[float], max_f: Optional[int]):
+    try:
+        video_dir = Path("data/videos")
+        video_dir.mkdir(parents=True, exist_ok=True)
+        
+        def progress_cb(percent: float, status: str):
+            analysis_jobs[job_id]["progress"] = percent
+            analysis_jobs[job_id]["status_msg"] = status
+            logger.info(f"Job {job_id}: {percent}% - {status}")
+
+        progress_cb(0.0, "Downloading from YouTube...")
+        
+        # yt-dlp options (optimized for systems without ffmpeg)
+        ydl_opts = {
+            'format': 'best[ext=mp4]/best',
+            'outtmpl': str(video_dir / '%(title)s.%(ext)s'),
+            'noplaylist': True,
+            'restrictfilenames': True,
+        }
+        
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            video_path = ydl.prepare_filename(info)
+            video_name = info.get('title', 'YouTube Video')
+            
+        analysis_jobs[job_id]["video_path"] = video_path
+        analysis_jobs[job_id]["video_name"] = video_name
+        
+        progress_cb(5.0, f"Download complete: {video_name}. Starting analysis...")
+        
+        # Now run the normal analysis
+        run_analysis_task(job_id, video_path, interval, max_f)
+        
+    except Exception as e:
+        analysis_jobs[job_id]["status"] = "failed"
+        analysis_jobs[job_id]["error"] = str(e)
+        logger.error(f"YouTube Job {job_id} failed: {e}")
 
 @app.get("/api/status/{job_id}")
 async def get_status(job_id: str):

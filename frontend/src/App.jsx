@@ -34,6 +34,8 @@ function App() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [ytUrl, setYtUrl] = useState('');
+  const [isYtLoading, setIsYtLoading] = useState(false);
   
   const statusInterval = useRef(null);
   const chatEndRef = useRef(null);
@@ -114,6 +116,27 @@ function App() {
     }
   };
 
+  const handleYoutubeSubmit = async (e) => {
+    e.preventDefault();
+    if (!ytUrl.trim()) return;
+    
+    setIsYtLoading(true);
+    try {
+      const resp = await axios.post(`${API_BASE}/youtube`, {
+        url: ytUrl
+      });
+      setJobId(resp.data.job_id);
+      setYtUrl('');
+      // We don't have the video path yet, the backend will update it.
+      setVideoName("YouTube Video");
+      setStatus({ status: 'processing', status_msg: 'Queuing YouTube Download...', progress: 0 });
+    } catch (err) {
+      alert("Failed to start YouTube analysis: " + err.message);
+    } finally {
+      setIsYtLoading(false);
+    }
+  };
+
   const handleChat = async (e) => {
     e.preventDefault();
     if (!chatQuery.trim() || isChatLoading) return;
@@ -165,7 +188,8 @@ function App() {
                 <video src={videoUrl} controls style={{ width: '100%', borderRadius: '0.75rem', border: '1px solid var(--glass-border)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)' }} />
               </div>
             ) : (
-              <div 
+              <>
+                <div 
                 className={`drop-zone ${isDragging ? 'active' : ''}`}
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                 onDragLeave={() => setIsDragging(false)}
@@ -183,6 +207,28 @@ function App() {
                 {isUploading ? <Loader2 size={40} className="spinner drop-zone-icon" /> : <Upload size={40} className="drop-zone-icon" />}
                 <p style={{ fontWeight: 600, marginTop: '0.5rem' }}>Drag Video or Click to Browse</p>
               </div>
+              
+              <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <Play size={18} className="text-primary" />
+                  <h4 style={{ margin: 0 }}>... or Paste YouTube Link</h4>
+                </div>
+                <form onSubmit={handleYoutubeSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input 
+                    type="text" 
+                    placeholder="https://www.youtube.com/watch?v=..." 
+                    value={ytUrl}
+                    onChange={(e) => setYtUrl(e.target.value)}
+                    className="glass-input"
+                    style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                  />
+                  <button type="submit" className="btn btn-primary" disabled={isYtLoading || !ytUrl.trim()}>
+                    {isYtLoading ? <Loader2 size={18} className="spinner" /> : <Send size={18} />}
+                    Process
+                  </button>
+                </form>
+              </div>
+            </>
             )}
 
             {videoPath && !status && !isUploading && (

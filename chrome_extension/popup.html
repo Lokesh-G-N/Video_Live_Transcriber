@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --bg: #0f172a;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+    body {
+      width: 320px;
+      padding: 1.5rem;
+      background: var(--bg);
+      color: white;
+      font-family: 'Inter', -apple-system, sans-serif;
+      margin: 0;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .logo-circle {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .video-info {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      word-break: break-all;
+    }
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
+      border: none;
+      border-radius: 0.5rem;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .btn:disabled {
+      background: #475569;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      text-align: center;
+      color: #94a3b8;
+    }
+    .loader {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      display: none;
+      animation: rotation 1s linear infinite;
+    }
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .loading .loader { display: inline-block; }
+    .loading span { display: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo-circle">V</div>
+    <h2>Video Transcriber AI</h2>
+  </div>
+
+  <div class="card">
+    <div id="video-title" style="font-weight: 600, margin-bottom: 0.5rem, display: none;">Detecting video...</div>
+    <div id="video-url" class="video-info">Not on a video page.</div>
+    
+    <button id="transcribe-btn" class="btn" disabled>
+      <span id="btn-text">Transcribe Now</span>
+      <div class="loader"></div>
+    </button>
+  </div>
+
+  <div id="status-msg" class="status">Open a YouTube video to begin.</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
